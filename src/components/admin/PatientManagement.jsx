@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
 import { getPatients, addPatient, updatePatient, deletePatient } from '../../utils/dataService'
 import {
   Box,
@@ -37,7 +36,6 @@ import {
 } from '@mui/icons-material'
 
 const PatientManagement = () => {
-  const { user } = useAuth()
   const navigate = useNavigate()
   const [patients, setPatients] = useState([])
   const [filteredPatients, setFilteredPatients] = useState([])
@@ -135,7 +133,7 @@ const PatientManagement = () => {
       }
       loadPatients()
       handleCloseDialog()
-    } catch (error) {
+    } catch {
       setSnackbar({
         open: true,
         message: 'Error saving patient',
@@ -154,7 +152,7 @@ const PatientManagement = () => {
           message: 'Patient deleted successfully',
           severity: 'success'
         })
-      } catch (error) {
+      } catch {
         setSnackbar({
           open: true,
           message: 'Error deleting patient',
@@ -205,8 +203,7 @@ const PatientManagement = () => {
 
         <TextField
           fullWidth
-          variant="outlined"
-          placeholder="Search patients by name, email, or contact..."
+          label="Search patients..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{

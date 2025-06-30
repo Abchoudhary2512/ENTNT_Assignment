@@ -9,8 +9,16 @@ import {
   Button, 
   Typography, 
   Alert,
-  Container
+  Container,
+  Paper,
+  Divider,
+  Avatar
 } from '@mui/material'
+import {
+  LocalHospital as HospitalIcon,
+  Lock as LockIcon,
+  Email as EmailIcon
+} from '@mui/icons-material'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -42,53 +50,158 @@ const Login = () => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Card sx={{ width: '100%', maxWidth: 400 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 3 }}>
-              ENTNT Dental Center
-            </Typography>
-            
-            <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
-              Login to Dashboard
-            </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 2
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3
+          }}
+        >
+          {/* Logo and Title Section */}
+          <Paper
+            elevation={8}
+            sx={{
+              p: 4,
+              borderRadius: 3,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              width: '100%',
+              maxWidth: 450
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mx: 'auto',
+                  mb: 2,
+                  bgcolor: 'primary.main',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                }}
+              >
+                <HospitalIcon sx={{ fontSize: 40 }} />
+              </Avatar>
+              <Typography 
+                variant="h3" 
+                component="h1" 
+                sx={{ 
+                  fontWeight: 700,
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 1
+                }}
+              >
+                ENTNT Dental
+              </Typography>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: 'text.secondary',
+                  fontWeight: 400,
+                  letterSpacing: 1
+                }}
+              >
+                Center Management System
+              </Typography>
+            </Box>
 
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+            <Divider sx={{ mb: 4 }} />
 
+            {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="email"
-              />
+              {error && (
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 3,
+                    borderRadius: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  {error}
+                </Alert>
+              )}
+
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  InputProps={{
+                    startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                        borderWidth: 2,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      '&.Mui-focused': {
+                        color: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Box>
               
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="current-password"
-              />
+              <Box sx={{ mb: 4 }}>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  InputProps={{
+                    startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                        borderWidth: 2,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      '&.Mui-focused': {
+                        color: 'primary.main',
+                      },
+                    },
+                  }}
+                />
+              </Box>
 
               <Button
                 type="submit"
@@ -96,27 +209,46 @@ const Login = () => {
                 variant="contained"
                 size="large"
                 disabled={loading}
-                sx={{ mt: 3, mb: 2 }}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5a6fd8, #6a4190)',
+                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                    transform: 'translateY(-1px)',
+                  },
+                  '&:disabled': {
+                    background: 'linear-gradient(45deg, #b0b0b0, #909090)',
+                    boxShadow: 'none',
+                    transform: 'none',
+                  },
+                  transition: 'all 0.3s ease'
+                }}
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? 'Signing In...' : 'Sign In to Dashboard'}
               </Button>
             </Box>
+          </Paper>
 
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>Demo Credentials:</strong>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Admin:</strong> admin@entnt.in / admin123
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Patient:</strong> john@entnt.in / patient123
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
-    </Container>
+          {/* Footer */}
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)',
+              textAlign: 'center',
+              mt: 2
+            }}
+          >
+            © 2024 ENTNT Dental Center. All rights reserved.
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   )
 }
 
