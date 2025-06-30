@@ -1,13 +1,12 @@
-
 const initializeData = () => {
   if (!localStorage.getItem('dentalPatients')) {
     const defaultPatients = [
       {
         id: "p1",
-        name: "John Doe",
+        name: "Patient 1",
         dob: "1990-05-10",
         contact: "1234567890",
-        email: "john@entnt.in",
+        email: "patient@entnt.in",
         healthInfo: "No allergies",
         address: "123 Main St, City",
         emergencyContact: "9876543210"

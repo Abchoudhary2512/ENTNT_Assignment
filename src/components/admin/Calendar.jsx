@@ -1,16 +1,11 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import { getIncidents, getPatients } from '../../utils/dataService'
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { getIncidents, getPatients, addIncident, updateIncident, deleteIncident } from '../../utils/dataService';
 import {
   Box,
   Container,
   Typography,
-  Button,
-  Card,
-  CardContent,
-  Grid,
-  Chip,
   AppBar,
   Toolbar,
   IconButton,
@@ -18,125 +13,153 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  Divider
-} from '@mui/material'
-import {
-  ArrowBack as ArrowBackIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  Today as TodayIcon,
-  Event as EventIcon
-} from '@mui/icons-material'
+  TextField,
+  Button,
+  MenuItem,
+} from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import listPlugin from '@fullcalendar/list';
 
 const Calendar = () => {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const [incidents, setIncidents] = useState([])
-  const [patients, setPatients] = useState([])
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [selectedDate, setSelectedDate] = useState(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [viewMode, setViewMode] = useState('month') // for the view mode, 'month' or 'week'
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [newEventInfo, setNewEventInfo] = useState(null);
+
+  const loadData = useCallback(() => {
+    const allIncidents = getIncidents();
+    const allPatients = getPatients();
+    setPatients(allPatients);
+
+    const formattedEvents = allIncidents.map((incident) => ({
+      id: incident.id,
+      title: incident.title,
+      start: new Date(incident.appointmentDateTime),
+      end: new Date(new Date(incident.appointmentDateTime).getTime() + incident.duration * 60000),
+      extendedProps: {
+        patientId: incident.patientId,
+        status: incident.status,
+        notes: incident.notes,
+        duration: incident.duration,
+      },
+      backgroundColor: getStatusColor(incident.status),
+      borderColor: getStatusColor(incident.status),
+    }));
+    setEvents(formattedEvents);
+  }, []);
 
   useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = () => {
-    const allIncidents = getIncidents()
-    const allPatients = getPatients()
-    setIncidents(allIncidents)
-    setPatients(allPatients)
-  }
-
-  const getPatientName = (patientId) => {
-    const patient = patients.find(p => p.id === patientId)
-    return patient ? patient.name : 'Unknown Patient'
-  }
+    loadData();
+  }, [loadData]);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'success'
-      case 'scheduled': return 'primary'
-      case 'cancelled': return 'error'
-      default: return 'default'
+      case 'completed':
+        return '#4caf50'; // green
+      case 'scheduled':
+        return '#2196f3'; // blue
+      case 'cancelled':
+        return '#f44336'; // red
+      default:
+        return '#757575'; // grey
     }
-  }
+  };
 
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const daysInMonth = lastDay.getDate()
-    const startingDay = firstDay.getDay()
+  const handleDateSelect = (selectInfo) => {
+    setNewEventInfo({
+      start: selectInfo.startStr,
+      end: selectInfo.endStr,
+      allDay: selectInfo.allDay,
+    });
+    setSelectedEvent(null);
+    setDialogOpen(true);
+  };
+
+  const handleEventClick = (clickInfo) => {
+    const { extendedProps } = clickInfo.event;
+    setSelectedEvent({
+      id: clickInfo.event.id,
+      title: clickInfo.event.title,
+      start: clickInfo.event.start,
+      end: clickInfo.event.end,
+      ...extendedProps,
+    });
+    setNewEventInfo(null);
+    setDialogOpen(true);
+  };
+
+  const handleEventDrop = (dropInfo) => {
+    const { event } = dropInfo;
+    const updatedIncident = {
+      id: event.id,
+      title: event.title,
+      appointmentDateTime: event.start.toISOString(),
+      duration: (event.end.getTime() - event.start.getTime()) / 60000,
+      patientId: event.extendedProps.patientId,
+      status: event.extendedProps.status,
+      notes: event.extendedProps.notes,
+    };
+    updateIncident(updatedIncident);
+    loadData();
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setSelectedEvent(null);
+    setNewEventInfo(null);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
     
-    const days = []
-    
-    for (let i = 0; i < startingDay; i++) {
-      days.push(null)
+    if (selectedEvent) {
+      // Update existing event
+      const updatedIncident = {
+        id: selectedEvent.id,
+        title: formData.get('title'),
+        appointmentDateTime: new Date(formData.get('start')).toISOString(),
+        duration: parseInt(formData.get('duration'), 10),
+        patientId: formData.get('patientId'),
+        status: formData.get('status'),
+        notes: formData.get('notes'),
+      };
+      updateIncident(updatedIncident);
+    } else if (newEventInfo) {
+      // Create new event
+      const newIncident = {
+        id: `INC-${Date.now()}`,
+        title: formData.get('title'),
+        appointmentDateTime: new Date(newEventInfo.start).toISOString(),
+        duration: parseInt(formData.get('duration'), 10),
+        patientId: formData.get('patientId'),
+        status: 'scheduled',
+        notes: formData.get('notes'),
+      };
+      addIncident(newIncident);
     }
     
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(new Date(year, month, i))
+    loadData();
+    handleDialogClose();
+  };
+
+  const handleDelete = () => {
+    if(selectedEvent) {
+      deleteIncident(selectedEvent.id);
+      loadData();
+      handleDialogClose();
     }
-    
-    return days
-  }
-
-  const getAppointmentsForDate = (date) => {
-    if (!date) return []
-    
-    const dateStr = date.toISOString().split('T')[0]
-    return incidents.filter(incident => {
-      const incidentDate = new Date(incident.appointmentDateTime).toISOString().split('T')[0]
-      return incidentDate === dateStr
-    })
-  }
-
-  const handleDateClick = (date) => {
-    if (date) {
-      setSelectedDate(date)
-      setDialogOpen(true)
-    }
-  }
-
-  const handlePreviousMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-  }
-
-  const handleNextMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-  }
-
-  const handleToday = () => {
-    setCurrentDate(new Date())
-  }
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    })
-  }
-
-  const formatTime = (dateTime) => {
-    return new Date(dateTime).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  }
-
-  const days = getDaysInMonth(currentDate)
-  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <AppBar position="static">
         <Toolbar>
           <IconButton
@@ -148,205 +171,122 @@ const Calendar = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Calendar View
+             Calendar
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 3, mb: 3, flexGrow: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" component="h1">
-            {monthName}
-          </Typography>
-          <Box display="flex" gap={1}>
-            <Button
-              variant="outlined"
-              startIcon={<ChevronLeftIcon />}
-              onClick={handlePreviousMonth}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleToday}
-              startIcon={<TodayIcon />}
-            >
-              Today
-            </Button>
-            <Button
-              variant="outlined"
-              endIcon={<ChevronRightIcon />}
-              onClick={handleNextMonth}
-            >
-              Next
-            </Button>
-          </Box>
-        </Box>
-
-        <Card>
-          <CardContent>
-            <Grid container>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <Grid item xs={12/7} key={day}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      borderBottom: '1px solid #e0e0e0',
-                      bgcolor: 'grey.50'
-                    }}
-                  >
-                    {day}
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-
-            <Grid container>
-              {days.map((day, index) => {
-                const appointments = getAppointmentsForDate(day)
-                const isToday = day && day.toDateString() === new Date().toDateString()
-                const isCurrentMonth = day && day.getMonth() === currentDate.getMonth()
-                
-                return (
-                  <Grid item xs={12/7} key={index}>
-                    <Box
-                      sx={{
-                        minHeight: 120,
-                        p: 1,
-                        border: '1px solid #e0e0e0',
-                        cursor: day ? 'pointer' : 'default',
-                        bgcolor: isToday ? 'primary.light' : 'white',
-                        '&:hover': day ? { bgcolor: 'grey.50' } : {},
-                        opacity: isCurrentMonth ? 1 : 0.5
-                      }}
-                      onClick={() => handleDateClick(day)}
-                    >
-                      {day && (
-                        <>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: isToday ? 'bold' : 'normal',
-                              color: isToday ? 'white' : 'text.primary'
-                            }}
-                          >
-                            {day.getDate()}
-                          </Typography>
-                          
-                          <Box sx={{ mt: 1 }}>
-                            {appointments.slice(0, 2).map((appointment) => (
-                              <Chip
-                                key={appointment.id}
-                                label={`${formatTime(appointment.appointmentDateTime)} - ${appointment.title.substring(0, 15)}${appointment.title.length > 15 ? '...' : ''}`}
-                                size="small"
-                                color={getStatusColor(appointment.status)}
-                                sx={{ 
-                                  mb: 0.5, 
-                                  fontSize: '0.7rem',
-                                  maxWidth: '100%',
-                                  '& .MuiChip-label': {
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                  }
-                                }}
-                              />
-                            ))}
-                            {appointments.length > 2 && (
-                              <Typography variant="caption" color="textSecondary">
-                                +{appointments.length - 2} more
-                              </Typography>
-                            )}
-                          </Box>
-                        </>
-                      )}
-                    </Box>
-                  </Grid>
-                )
-              })}
-            </Grid>
-          </CardContent>
-        </Card>
+      <Container maxWidth="xl" sx={{ flexGrow: 1, py: 3 }}>
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+          }}
+          initialView="dayGridMonth"
+          weekends={true}
+          events={events}
+          selectable={true}
+          selectMirror={true}
+          dayMaxEvents={true}
+          select={handleDateSelect}
+          eventClick={handleEventClick}
+          editable={true}
+          eventDrop={handleEventDrop}
+          height="100%"
+        />
       </Container>
-
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Appointments for {selectedDate && formatDate(selectedDate)}
-        </DialogTitle>
-        <DialogContent>
-          {selectedDate && (
-            <List>
-              {getAppointmentsForDate(selectedDate).map((appointment, index) => (
-                <Box key={appointment.id}>
-                  <ListItem>
-                    <ListItemText
-                      primary={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Typography variant="h6">
-                            {appointment.title}
-                          </Typography>
-                          <Chip
-                            label={appointment.status}
-                            color={getStatusColor(appointment.status)}
-                            size="small"
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Patient:</strong> {getPatientName(appointment.patientId)}
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            <strong>Time:</strong> {formatTime(appointment.appointmentDateTime)}
-                          </Typography>
-                          {appointment.description && (
-                            <Typography variant="body2" color="textSecondary">
-                              <strong>Description:</strong> {appointment.description}
-                            </Typography>
-                          )}
-                          {appointment.comments && (
-                            <Typography variant="body2" color="textSecondary">
-                              <strong>Comments:</strong> {appointment.comments}
-                            </Typography>
-                          )}
-                          {appointment.status === 'completed' && (
-                            <Box mt={1}>
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>Cost:</strong> ${appointment.cost}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                <strong>Treatment:</strong> {appointment.treatment}
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                  {index < getAppointmentsForDate(selectedDate).length - 1 && <Divider />}
-                </Box>
+      
+      <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
+        <DialogTitle>{selectedEvent ? 'Edit Appointment' : 'New Appointment'}</DialogTitle>
+        <form onSubmit={handleSave}>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              name="title"
+              label="Title"
+              type="text"
+              fullWidth
+              variant="outlined"
+              defaultValue={selectedEvent?.title || ''}
+              required
+            />
+            <TextField
+              margin="dense"
+              name="patientId"
+              label="Patient"
+              select
+              fullWidth
+              variant="outlined"
+              defaultValue={selectedEvent?.patientId || ''}
+              required
+            >
+              {patients.map((p) => (
+                <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
               ))}
-            </List>
-          )}
-          
-          {selectedDate && getAppointmentsForDate(selectedDate).length === 0 && (
-            <Box textAlign="center" py={4}>
-              <EventIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-              <Typography color="textSecondary">
-                No appointments scheduled for this date.
-              </Typography>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Close</Button>
-        </DialogActions>
+            </TextField>
+            {selectedEvent && (
+               <TextField
+                margin="dense"
+                name="start"
+                label="Appointment Time"
+                type="datetime-local"
+                fullWidth
+                variant="outlined"
+                defaultValue={selectedEvent ? new Date(selectedEvent.start).toISOString().slice(0,16) : ''}
+                InputLabelProps={{ shrink: true }}
+              />
+            )}
+            <TextField
+              margin="dense"
+              name="duration"
+              label="Duration (minutes)"
+              type="number"
+              fullWidth
+              variant="outlined"
+              defaultValue={selectedEvent?.duration || 30}
+              required
+            />
+
+            {selectedEvent && (
+              <TextField
+                margin="dense"
+                name="status"
+                label="Status"
+                select
+                fullWidth
+                variant="outlined"
+                defaultValue={selectedEvent?.status || 'scheduled'}
+              >
+                <MenuItem value="scheduled">Scheduled</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="cancelled">Cancelled</MenuItem>
+              </TextField>
+            )}
+            <TextField
+              margin="dense"
+              name="notes"
+              label="Notes"
+              type="text"
+              fullWidth
+              multiline
+              rows={4}
+              variant="outlined"
+              defaultValue={selectedEvent?.notes || ''}
+            />
+          </DialogContent>
+          <DialogActions>
+            {selectedEvent && <Button onClick={handleDelete} color="error">Delete</Button>}
+            <Box sx={{ flexGrow: 1 }} />
+            <Button onClick={handleDialogClose}>Cancel</Button>
+            <Button type="submit" variant="contained">Save</Button>
+          </DialogActions>
+        </form>
       </Dialog>
     </Box>
-  )
-}
+  );
+};
 
-export default Calendar 
+export default Calendar;
