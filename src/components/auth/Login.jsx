@@ -12,12 +12,17 @@ import {
   Container,
   Paper,
   Divider,
-  Avatar
+  Avatar,
+  InputAdornment,
+  IconButton,
+  CircularProgress
 } from '@mui/material'
 import {
   LocalHospital as HospitalIcon,
   Lock as LockIcon,
-  Email as EmailIcon
+  Email as EmailIcon,
+  Visibility,
+  VisibilityOff
 } from '@mui/icons-material'
 
 const Login = () => {
@@ -25,6 +30,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -73,13 +79,23 @@ const Login = () => {
           <Paper
             elevation={8}
             sx={{
-              p: 4,
+              p: { xs: 2, sm: 4 },
               borderRadius: 3,
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
               width: '100%',
-              maxWidth: 450
+              maxWidth: 450,
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+              transition: 'box-shadow 0.3s',
+              '&:hover': {
+                boxShadow: '0 16px 48px 0 rgba(31, 38, 135, 0.22)',
+              },
+              animation: 'fadeIn 1s',
+              '@keyframes fadeIn': {
+                from: { opacity: 0, transform: 'translateY(40px)' },
+                to: { opacity: 1, transform: 'none' }
+              }
             }}
           >
             {/* Header */}
@@ -175,13 +191,25 @@ const Login = () => {
                 <TextField
                   fullWidth
                   label="Password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                   InputProps={{
                     startAdornment: <LockIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          onClick={() => setShowPassword((show) => !show)}
+                          edge="end"
+                          size="large"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -211,26 +239,19 @@ const Login = () => {
                 disabled={loading}
                 sx={{
                   py: 1.5,
-                  borderRadius: 2,
+                  fontWeight: 700,
                   fontSize: '1.1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                  borderRadius: 2,
+                  background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '0 2px 8px rgba(102,126,234,0.15)',
+                  transition: 'background 0.3s',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #5a6fd8, #6a4190)',
-                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
-                    transform: 'translateY(-1px)',
+                    background: 'linear-gradient(90deg, #764ba2 0%, #667eea 100%)',
                   },
-                  '&:disabled': {
-                    background: 'linear-gradient(45deg, #b0b0b0, #909090)',
-                    boxShadow: 'none',
-                    transform: 'none',
-                  },
-                  transition: 'all 0.3s ease'
+                  mt: 2
                 }}
               >
-                {loading ? 'Signing In...' : 'Sign In to Dashboard'}
+                {loading ? <CircularProgress size={28} sx={{ color: 'white' }} /> : 'Login'}
               </Button>
             </Box>
           </Paper>
