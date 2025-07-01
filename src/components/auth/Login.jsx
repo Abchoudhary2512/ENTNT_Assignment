@@ -244,7 +244,7 @@ const Login = () => {
               mt: 2
             }}
           >
-            © 2024 ENTNT Dental Center. All rights reserved.
+            © 2025 ENTNT Dental Center. All rights reserved.
           </Typography>
         </Box>
       </Container>

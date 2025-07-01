@@ -28,6 +28,7 @@ import {
   Logout as LogoutIcon,
   ExpandMore as ExpandMoreIcon,
   AttachFile as AttachFileIcon,
+  Download as DownloadIcon,
   Person as PersonIcon,
   Event as EventIcon,
   Receipt as ReceiptIcon
@@ -48,8 +49,23 @@ const PatientView = () => {
   const loadPatientData = () => {
     const patientData = getPatientById(user.patientId)
     const patientIncidents = getIncidentsByPatient(user.patientId)
-    setPatient(patientData)
-    setIncidents(patientIncidents)
+    
+    if (!patientData) {
+      // If patient data is not found, set a default patient object to prevent infinite loading
+      setPatient({
+        id: user.patientId,
+        name: user.name || 'Unknown Patient',
+        contact: 'N/A',
+        email: user.email || 'N/A',
+        healthInfo: 'N/A',
+        address: 'N/A',
+        emergencyContact: 'N/A'
+      })
+    } else {
+      setPatient(patientData)
+    }
+    
+    setIncidents(patientIncidents || [])
   }
 
   const handleLogout = () => {
@@ -85,6 +101,28 @@ const PatientView = () => {
   const upcomingAppointments = incidents.filter(i => i.status === 'scheduled')
   const completedAppointments = incidents.filter(i => i.status === 'completed')
   const totalSpent = completedAppointments.reduce((sum, i) => sum + (i.cost || 0), 0)
+
+  // Helper to download base64 file
+  const handleDownloadFile = (file) => {
+    // Convert base64 to Blob
+    const byteCharacters = atob(file.data)
+    const byteNumbers = new Array(byteCharacters.length)
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+    const blob = new Blob([byteArray], { type: file.type })
+    const url = URL.createObjectURL(blob)
+
+    // Create a temporary link and trigger download
+    const link = document.createElement('a')
+    link.href = url
+    link.download = file.name
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   if (!patient) {
     return (
@@ -324,7 +362,11 @@ const PatientView = () => {
                           </Typography>
                           <List dense>
                             {appointment.files.map((file) => (
-                              <ListItem key={file.id}>
+                              <ListItem key={file.id} secondaryAction={
+                                <IconButton edge="end" aria-label="download" onClick={() => handleDownloadFile(file)}>
+                                  <DownloadIcon />
+                                </IconButton>
+                              }>
                                 <AttachFileIcon sx={{ mr: 1, color: 'text.secondary' }} />
                                 <ListItemText
                                   primary={file.name}

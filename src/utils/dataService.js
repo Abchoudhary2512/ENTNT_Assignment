@@ -119,7 +119,8 @@ export const deletePatient = (id) => {
 
 export const getPatientById = (id) => {
   const patients = getPatients()
-  return patients.find(p => p.id === id)
+  const foundPatient = patients.find(p => p.id === id)
+  return foundPatient
 }
 
 // Incident/Appointment Operations

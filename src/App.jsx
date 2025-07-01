@@ -16,7 +16,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" replace />
   }
   
+  // If the user is a patient and tries to access any route except /patient-view, redirect them
+  if (user?.role === 'Patient' && window.location.pathname !== '/patient-view') {
+    return <Navigate to="/patient-view" replace />
+  }
+  
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    // If the user is not allowed, redirect based on role
+    if (user?.role === 'Patient') {
+      return <Navigate to="/patient-view" replace />
+    }
     return <Navigate to="/" replace />
   }
   
