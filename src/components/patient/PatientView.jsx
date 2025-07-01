@@ -21,7 +21,9 @@ import {
   ListItem,
   ListItemText,
   Divider,
-  Avatar
+  Avatar,
+  Tooltip,
+  Stack
 } from '@mui/material'
 import {
   ArrowBack as ArrowBackIcon,
@@ -31,7 +33,8 @@ import {
   Download as DownloadIcon,
   Person as PersonIcon,
   Event as EventIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material'
 
 const PatientView = () => {
@@ -104,24 +107,65 @@ const PatientView = () => {
 
   // Helper to download base64 file
   const handleDownloadFile = (file) => {
-    // Convert base64 to Blob
-    const byteCharacters = atob(file.data)
-    const byteNumbers = new Array(byteCharacters.length)
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i)
-    }
-    const byteArray = new Uint8Array(byteNumbers)
-    const blob = new Blob([byteArray], { type: file.type })
-    const url = URL.createObjectURL(blob)
+    try {
+      if (!file || !file.data) {
+        alert('File data is missing or invalid.');
+        return;
+      }
+      // Validate base64 string
+      let base64Data = file.data;
+      // Remove data URL prefix if present
+      if (base64Data.startsWith('data:')) {
+        base64Data = base64Data.split(',')[1];
+      }
+      // Convert base64 to Blob
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: file.type || 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
 
-    // Create a temporary link and trigger download
-    const link = document.createElement('a')
-    link.href = url
-    link.download = file.name
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name || 'downloaded_file';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download file. The file data may be corrupted or invalid.');
+      console.error('Download error:', error);
+    }
+  }
+
+  const handlePreviewFile = (file) => {
+    try {
+      if (!file || !file.data) {
+        alert('File data is missing or invalid.');
+        return;
+      }
+      let base64Data = file.data;
+      // Remove data URL prefix if present
+      if (base64Data.startsWith('data:')) {
+        // Already a data URL, use as is
+      } else {
+        base64Data = `data:${file.type || 'application/octet-stream'};base64,${base64Data}`;
+      }
+      // Open in new tab
+      const win = window.open();
+      if (win) {
+        win.document.write(`<iframe src='${base64Data}' frameborder='0' style='border:0; top:0; left:0; bottom:0; right:0; width:100vw; height:100vh;' allowfullscreen></iframe>`);
+      } else {
+        alert('Popup blocked! Please allow popups for this site to preview files.');
+      }
+    } catch (error) {
+      alert('Failed to preview file. The file data may be corrupted or invalid.');
+      console.error('Preview error:', error);
+    }
   }
 
   if (!patient) {
@@ -362,11 +406,23 @@ const PatientView = () => {
                           </Typography>
                           <List dense>
                             {appointment.files.map((file) => (
-                              <ListItem key={file.id} secondaryAction={
-                                <IconButton edge="end" aria-label="download" onClick={() => handleDownloadFile(file)}>
-                                  <DownloadIcon />
-                                </IconButton>
-                              }>
+                              <ListItem key={file.id} 
+                                secondaryAction={
+                                  <Stack direction="row" spacing={-9} alignItems="center" sx={{ ml: 2 }}>
+                                    <Tooltip title="Preview File">
+                                      <IconButton edge="end" aria-label="preview" onClick={() => handlePreviewFile(file)} color="primary">
+                                        <VisibilityIcon />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Download File">
+                                      <IconButton edge="end" aria-label="download" onClick={() => handleDownloadFile(file)} color="secondary">
+                                        <DownloadIcon />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
+                                }
+                                alignItems="center"
+                              >
                                 <AttachFileIcon sx={{ mr: 1, color: 'text.secondary' }} />
                                 <ListItemText
                                   primary={file.name}
