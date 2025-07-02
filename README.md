@@ -1,12 +1,59 @@
-# React + Vite
+# ENTNT Dental Center Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive dental clinic management system built with React, Vite, and Material-UI.  
+It supports both Admin and Patient roles, providing dashboards, appointment management, patient records, and secure authentication.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Role-based Dashboards:** Separate views for Admins and Patients.
+- **Authentication:** Secure login with context-based state management.
+- **Patient Management:** View, manage, and search patient records (Admin).
+- **Appointment Management:** Schedule, view, and manage appointments (Admin).
+- **Calendar Integration:** Visualize appointments in a calendar view (Admin).
+- **Treatment History:** Patients can view their completed treatments, download, and preview attached files.
+- **Responsive UI:** Fully responsive and modern design using Material-UI.
+- **File Handling:** Download and preview treatment-related files (images, PDFs, etc.).
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js (v16 or higher recommended)
+- npm
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Abchoudhary2512/ENTNT_Assignment
+   cd ENTNT_Assignment
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser:**
+   Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal).
+
+## Project Structure
+
+```
+src/
+  assets/             # Images and static assets
+  components/
+    admin/            # Admin-specific components
+    auth/             # Authentication (Login)
+    dashboard/        # Dashboard components
+    patient/          # Patient-specific components
+  contexts/           # React Contexts (e.g., AuthContext)
+  utils/              # Utility functions (e.g., dataService.js)
+  App.jsx             # Main app component
+  main.jsx            # Entry point
+```
