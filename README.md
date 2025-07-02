@@ -66,3 +66,17 @@ src/
   App.jsx             # Main app component
   main.jsx            # Entry point
 ```
+
+### Known Issues or Limitations
+- Mock Data Only: The application currently uses mock data and does not connect to a real backend or database.
+- No Real Authentication: Login is handled in-memory and is not secure for production use.
+- File Handling: File preview and download rely on base64 data; large files or unsupported formats may not work as expected.
+- No Email/Notification System: Appointment reminders and notifications are not implemented.
+- No API Integration: All data operations are local; integration with real APIs will require additional work.
+
+### Technical Decisions
+ - React + Vite: Chosen for fast development, hot module replacement, and modern tooling.
+ - Material-UI (MUI): Used for rapid UI development and consistent, responsive design.
+ - Context API: Used for authentication state management to keep the app simple and avoid Redux.
+ - Component Structure: Organized by feature (admin, patient, dashboard, auth) for scalability and clarity.
+ - Mock Data Service: All data is served from src/utils/dataService.js to simplify development and testing.
