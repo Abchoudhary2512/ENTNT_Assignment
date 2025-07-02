@@ -14,6 +14,15 @@ It supports both Admin and Patient roles, providing dashboards, appointment mana
 - **Responsive UI:** Fully responsive and modern design using Material-UI.
 - **File Handling:** Download and preview treatment-related files (images, PDFs, etc.).
 
+## Login Credentials (Demo)
+### Use the following credentials to log in as an Admin or Patient for testing/demo purposes:
+### Admin
+   - Email: admin@entnt.in
+   - Password: admin123
+### Patient
+   - Email: patient1@entnt.in
+   - Password: patient123
+
 ## Getting Started
 
 ### Prerequisites
