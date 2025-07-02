@@ -2,6 +2,7 @@
 
 A modern, responsive dental clinic management system built with React, Vite, and Material-UI.  
 It supports both Admin and Patient roles, providing dashboards, appointment management, patient records, and secure authentication.
+![recording](https://github.com/user-attachments/assets/2fd3ad25-12f4-4f2b-8123-5119e22a600a)
 
 ## Features
 
