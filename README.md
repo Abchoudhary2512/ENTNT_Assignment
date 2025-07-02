@@ -23,6 +23,32 @@ It supports both Admin and Patient roles, providing dashboards, appointment mana
    - Email: patient1@entnt.in
    - Password: patient123
 
+
+### Screenshots
+#### Login Page
+![login1](https://github.com/user-attachments/assets/080b03b7-a46d-4293-ac29-d7ea5c088256)
+
+#### Dashboard
+![dashboard1](https://github.com/user-attachments/assets/8aa1efca-b1b4-4194-876b-b54e1005e016)
+
+#### Calendar
+![calendar](https://github.com/user-attachments/assets/62893542-359a-451a-91e3-8e698cfb15af)
+
+#### Appointment Page
+![appointment1](https://github.com/user-attachments/assets/dadedc46-5f2a-4f30-b12e-1258b4db5150)
+![app2](https://github.com/user-attachments/assets/17096b1b-cbf8-4cd4-b8da-66bfe09505d2)
+![appointment](https://github.com/user-attachments/assets/ab571a79-3048-4f43-aa74-4a9afe713c91)
+
+
+#### Patient Page
+![patient2](https://github.com/user-attachments/assets/7629bff2-2947-4d58-ac10-3d714642b038)
+
+#### Patient View
+![patientview](https://github.com/user-attachments/assets/da7a5b2a-8a20-45e0-a1e2-ea7a72ae2f80)
+![patient4](https://github.com/user-attachments/assets/891f29bf-14d1-4ad6-b196-d9ca093f6273)
+![patinet1](https://github.com/user-attachments/assets/ecf17a59-7d96-4f4a-adc4-c395cf57252f)
+
+
 ## Getting Started
 
 ### Prerequisites
